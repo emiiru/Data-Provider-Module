@@ -39,7 +39,7 @@
     <script src="https://kit.fontawesome.com/fe810b359e.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script>
-        $(function () {
+        $(function() {
             var table = $('#data-provider-datatable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -61,158 +61,170 @@
                 ]
             });
 
-            $('body').on('click', '.btn-view', function (e) {
+            $('body').on('click', '.btn-view', async function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
-                let image = '';
-                $.ajax({
-                    type: 'GET',
-                    url: '/' + id,
-                    dataType: 'json',
-                    success: function (data) {
-                        $.ajax({
-                            type: 'GET',
-                            url: data.url,
-                            dataType: 'json',
-                            success: function (response) {
-                                image = (response.message ? response.message : response[0].url);
-                                if(image != '' || image != null || image != 'undefined'){
-                                    $('#viewModalLabel').text(data.name);
-                                    $('#view-modal img').attr('src', image);
-                                    $('#view-modal').modal('show');
-                                } else {
-                                    swal("Provider got error showing image", {
-                                        icon: "error",
-                                    });
-                                }
-                                
-                            },
-                            error: function (response) {
-                                swal("Provider got error showing data", {
-                                    icon: "error",
-                                });
-                            }
-                        });
-                    },
-                    error: function (data) {
-                        swal("Provider got error showing data", {
-                            icon: "error",
-                        });
-                    }
-                });
-            });
 
-            $('body').on('click', '.btn-edit', function (e) {
-                e.preventDefault();
-                var id = $(this).data('id');
-                $.ajax({
-                    type: 'GET',
-                    url: '/' + id,
-                    dataType: 'json',
-                    success: function (data) {
-                        console.log(data);
-                        $("#edit-form input[name=id]").val(data.id);
-                        $("#edit-form input[name=name]").val(data.name);
-                        $("#edit-form input[name=url]").val(data.url);
-                        $('#edit-modal').modal('show');
-                    },
-                    error: function (response) {
-                        swal("Provider got error showing data", {
-                            icon: "error",
-                        });
-                    }
-                });
-            });
-
-            $('body').on('click', '.btn-delete', function (e) {
-                e.preventDefault();
-                var id = $(this).data('id');
-                swal({
-                        title: "Are you sure?",
-                        text: "Once deleted, you will not be able to recover this Provider!",
-                        icon: "warning",
-                        buttons: true,
-                        dangerMode: true,
-                    })
-                    .then((willDelete) => {
-                        if (willDelete) {
-                            $.ajax({
-                                type: 'GET',
-                                url: '/delete/' + id,
-                                dataType: 'json',
-                                success: function (data) {
-                                    if (data.status == 'deleted') {
-                                        swal("Provider has been deleted!", {
-                                            icon: "success",
-                                        });
-                                        table.draw();
-                                    }
-                                },
-                                error: function (response) {
-                                    swal("Provider not deleted", {
-                                        icon: "error",
-                                    });
-                                },
-                            });
-
-                        }
+                try {
+                    const data = await $.ajax({
+                        type: 'GET',
+                        url: '/' + id,
+                        dataType: 'json',
                     });
+
+                    const response = await $.ajax({
+                        type: 'GET',
+                        url: data.url,
+                        dataType: 'json',
+                    });
+
+                    const image = response.message ? response.message : response[0].url;
+
+                    if (image && image !== null && image !== 'undefined') {
+                        $('#viewModalLabel').text(data.name);
+                        $('#view-modal img').attr('src', image);
+                        $('#view-modal').modal('show');
+                        $('#refresh-btn').attr('data-id', id);
+                    } else {
+                        swal("Provider encountered an error while showing the image", {
+                            icon: "error",
+                        });
+                    }
+                } catch (error) {
+                    swal("Provider encountered an error while showing data", {
+                        icon: "error",
+                    });
+                }
+            });
+
+            $('body').on('click', '#refresh-btn', async function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                try {
+                    const data = await $.ajax({
+                        type: 'GET',
+                        url: '/' + id,
+                        dataType: 'json',
+                    });
+                    const response = await $.ajax({
+                        type: 'GET',
+                        url: data.url,
+                        dataType: 'json',
+                    });
+
+                    const image = response.message ? response.message : response[0].url;
+                    if (image && image !== null && image !== 'undefined') {
+                        $('#view-modal img').attr('src', image);
+                    } else {
+                        swal("Provider encountered an error while showing the image", {
+                            icon: "error",
+                        });
+                    }
+                } catch (error) {
+                    swal("Provider encountered an error while showing data", {
+                        icon: "error",
+                    });
+                }
             });
 
 
-            $('body').on('submit', '#add-form', function (e) {
+
+
+            $('body').on('click', '.btn-edit', async function(e) {
                 e.preventDefault();
+                var id = $(this).data('id');
+
+                try {
+                    const data = await $.ajax({
+                        type: 'GET',
+                        url: '/' + id,
+                        dataType: 'json',
+                    });
+
+                    console.log(data);
+                    $("#edit-form input[name=id]").val(data.id);
+                    $("#edit-form input[name=name]").val(data.name);
+                    $("#edit-form input[name=url]").val(data.url);
+                    $('#edit-modal').modal('show');
+                } catch (error) {
+                    swal("Provider encountered an error while showing data", {
+                        icon: "error",
+                    });
+                }
+            });
+
+
+            $('body').on('click', '.btn-delete', async function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+
+                const willDelete = await swal({
+                    title: "Are you sure?",
+                    text: "Once deleted, you will not be able to recover this Provider!",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                });
+
+                if (willDelete) {
+                    try {
+                        const data = await $.ajax({
+                            type: 'GET',
+                            url: '/delete/' + id,
+                            dataType: 'json',
+                        });
+
+                        if (data.status === 'deleted') {
+                            swal("Provider has been deleted!", {
+                                icon: "success",
+                            });
+                            table.draw();
+                        }
+                    } catch (error) {
+                        swal("Provider not deleted", {
+                            icon: "error",
+                        });
+                    }
+                }
+            });
+
+            $('body').on('submit', '#add-form', function(e) {
+                e.preventDefault();
+                submitForm(this, "Provider has been added!", '#add-modal',
+                    "{{ route('data-provider.store') }}");
+            });
+
+            $('body').on('submit', '#edit-form', function(e) {
+                e.preventDefault();
+                submitForm(this, "Provider has been updated!", '#edit-modal',
+                    "{{ route('data-provider.update') }}");
+            });
+
+            function submitForm(form, successMessage, modalId, routeURL) {
                 $.ajax({
                     type: 'POST',
                     contentType: false,
                     processData: false,
-                    data: new FormData(this),
-                    url: "{{ route('data-provider.store') }}",
+                    data: new FormData(form),
+                    url: routeURL,
                     dataType: 'json',
-                    success: function (data) {
-                        if (data.status == 'success') {
-                            swal("Provider has been added!", {
+                    success: function(data) {
+                        if (data.status === 'success') {
+                            swal(successMessage, {
                                 icon: "success",
                             });
-                            $('#add-modal').modal('hide');
+                            $(modalId).modal('hide');
                             table.draw();
+                            form.reset(); // Reset the form
                         }
                         console.log(data);
                     },
-                    error: function (response) {
+                    error: function(response) {
                         console.log(response.responseJSON.errors);
                     },
                 });
-            });
-
-            $('body').on('submit', '#edit-form', function (e) {
-                e.preventDefault();
-                $.ajax({
-                    type: 'POST',
-                    contentType: false,
-                    processData: false,
-                    data: new FormData(this),
-                    url: "{{ route('data-provider.update') }}",
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.status == 'success') {
-                            swal("Provider has been updated!", {
-                                icon: "success",
-                            });
-                            $('#edit-modal').modal('hide');
-                            table.draw();
-                        }
-                        console.log(data);
-                    },
-                    error: function (response) {
-                        console.log(response.responseJSON.errors);
-                    },
-                });
-            });
-
-
+            }
         });
-
     </script>
 </body>
 

@@ -9,13 +9,12 @@
                 </button>
             </div>
             <div class="modal-body">
-                
                 <img class="img-fluid" src="">
-                
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="refresh-btn"><span class="fa fa-refresh"></span>Refresh</button>
+                <button type="button" class="btn btn-primary" id="refresh-btn"><span
+                        class="fa fa-refresh"></span>Refresh</button>
             </div>
         </div>
     </div>
